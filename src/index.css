@@ -1,0 +1,154 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Dark theme with wealth/green accent */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 10% 7%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 4%;
+    --popover-foreground: 0 0% 98%;
+
+    --primary: 142 100% 39%;  /* Green color for wealth theme */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 240 5% 15%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 6% 17%;
+    --muted-foreground: 240 5% 75%;
+
+    --accent: 51 100% 50%;  /* Gold accent color */
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 5% 26%;
+    --input: 240 5% 17%;
+    --ring: 240 5% 65%;
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-background text-foreground antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .font-mono {
+    font-family: 'Roboto Mono', monospace;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight;
+  }
+  
+  /* Custom glass style for cards */
+  .glass-card {
+    @apply bg-card/90 backdrop-blur-md border border-border/50 shadow-lg;
+  }
+  
+  /* Market up/down indicators */
+  .market-up {
+    @apply text-market-bull;
+  }
+  
+  .market-down {
+    @apply text-market-bear;
+  }
+  
+  /* Chart styles */
+  .chart-container {
+    @apply bg-card rounded-lg p-4 border border-border/50;
+  }
+
+  /* Finance specific styles */
+  .finance-numeral {
+    @apply font-mono font-medium;
+  }
+
+  /* Decorative elements */
+  .wealth-gradient {
+    @apply bg-gradient-to-r from-wealth-primary to-wealth-accent text-transparent bg-clip-text;
+  }
+}
+
+/* Custom animations */
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite ease-in-out;
+}
+
+/* Enhanced focus styles for accessibility */
+.focus-ring:focus {
+  @apply ring-2 ring-primary ring-offset-2 ring-offset-background outline-none;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-background;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-muted rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground;
+}
+
+/* Data visualization enhancements */
+.number-display {
+  @apply font-mono text-xl font-bold;
+}
+
+/* Form styling enhancements */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-text-fill-color: hsl(var(--foreground));
+  -webkit-box-shadow: 0 0 0px 1000px hsl(var(--input)) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
