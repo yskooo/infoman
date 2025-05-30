@@ -1,10 +1,9 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { toast } from "sonner";
-import { AlertTriangle, Check } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import { AlertTriangle, Check, Loader2 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { RegistrationStepper } from "@/components/auth/RegistrationStepper";
@@ -14,23 +13,46 @@ import { FundingSourceStep } from "@/components/auth/registration/FundingSourceS
 import { BankingDetailsStep } from "@/components/auth/registration/BankingDetailsStep";
 import { ContactsStep } from "@/components/auth/registration/ContactsStep";
 import { ReviewStep } from "@/components/auth/registration/ReviewStep";
-import { RegistrationData, PersonalData, SourceOfFunding, BankDetails, ContactRole } from "@/types/models";
+import { RegistrationFormData } from "@/types/models";
+import { authService } from "@/services/api/auth.service";
 
 const Register = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Form state
-  const [formData, setFormData] = useState<Partial<RegistrationData>>({
+  const [formData, setFormData] = useState<RegistrationFormData>({
     credentials: {
       email: "",
       password: ""
     },
-    personalData: {} as PersonalData,
-    fundingSource: {} as SourceOfFunding,
-    bankDetails: {} as BankDetails,
-    contacts: [] as ContactRole[]
+    personalData: {
+      P_Name: "",
+      P_Address: "",
+      P_Postal_Code: "",
+      P_Cell_Number: 0,
+      P_Email: "",
+      Date_of_Birth: new Date(),
+      Employment_Status: "Employed",
+      Purpose_of_Opening: "Savings"
+    },
+    fundingSource: {
+      Nature_of_Work: "",
+      Business_School_Name: "",
+      Office_School_Address: "",
+      Office_School_Number: "",
+      Valid_ID: "Passport",
+      Source_of_Income: "Salary"
+    },
+    bankDetails: {
+      Bank_Acc_Name: "",
+      Bank_Acc_Date_of_Opening: new Date(),
+      Bank_Name: "",
+      Branch: ""
+    },
+    contacts: []
   });
 
   // Handle account credentials
@@ -40,18 +62,18 @@ const Register = () => {
       credentials: data,
       personalData: {
         ...prev.personalData,
-        email: data.email
+        P_Email: data.email
       }
     }));
     setCurrentStep(1);
   };
 
   // Handle personal details
-  const handlePersonalDetailsSubmit = (data: Omit<PersonalData, "fundingId" | "bankAccNo" | "accId">) => {
+  const handlePersonalDetailsSubmit = (data: Omit<RegistrationFormData["personalData"], "P_Email">) => {
     setFormData(prev => ({
       ...prev,
       personalData: {
-        ...prev.personalData as PersonalData,
+        ...prev.personalData,
         ...data
       }
     }));
@@ -59,32 +81,25 @@ const Register = () => {
   };
 
   // Handle funding source
-  const handleFundingSourceSubmit = (data: Omit<SourceOfFunding, "fundingId">) => {
+  const handleFundingSourceSubmit = (data: RegistrationFormData["fundingSource"]) => {
     setFormData(prev => ({
       ...prev,
-      fundingSource: {
-        ...prev.fundingSource as SourceOfFunding,
-        ...data
-      }
+      fundingSource: data
     }));
     setCurrentStep(3);
   };
 
   // Handle banking details
-  const handleBankingDetailsSubmit = (data: BankDetails) => {
+  const handleBankingDetailsSubmit = (data: RegistrationFormData["bankDetails"]) => {
     setFormData(prev => ({
       ...prev,
-      bankDetails: data,
-      personalData: {
-        ...prev.personalData as PersonalData,
-        bankAccNo: data.bankAccNo
-      }
+      bankDetails: data
     }));
     setCurrentStep(4);
   };
 
   // Handle contacts
-  const handleContactsSubmit = (contacts: ContactRole[]) => {
+  const handleContactsSubmit = (contacts: RegistrationFormData["contacts"]) => {
     setFormData(prev => ({
       ...prev,
       contacts
@@ -97,25 +112,28 @@ const Register = () => {
     setIsSubmitting(true);
     
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const response = await authService.register(formData);
       
-      // Success notification
-      toast.success("Registration successful", {
-        description: "Your account application has been submitted for review.",
-        action: {
-          label: "View status",
-          onClick: () => console.log("View status")
-        }
-      });
-      
-      // Redirect to success page or dashboard
-      navigate("/login");
-      
+      if (response) {
+        toast({
+          description: "Your account has been created successfully! Please log in.",
+        });
+        
+        // Redirect to login page
+        navigate("/login");
+      } else {
+        toast({
+          variant: "destructive",
+          description: "Failed to create account. Please try again.",
+        });
+      }
     } catch (error) {
-      console.error("Registration error:", error);
-      toast.error("Registration failed", {
-        description: "There was an error processing your application. Please try again."
+      console.error('Registration error:', error);
+      toast({
+        variant: "destructive",
+        description: error instanceof Error 
+          ? `Registration failed: ${error.message}` 
+          : "Failed to create account. Please try again.",
       });
     } finally {
       setIsSubmitting(false);

@@ -142,16 +142,22 @@ const PnLStatements = () => {
     }
   };
   
-  const formatPeriodLabel = (statement: any) => {
+  interface Statement {
+    startDate: string | Date;
+    endDate: string | Date;
+    period: 'MONTHLY' | 'QUARTERLY' | 'ANNUALLY' | string;
+  }
+
+  const formatPeriodLabel = (statement: Statement) => {
     const startDate = new Date(statement.startDate);
     const endDate = new Date(statement.endDate);
     
     switch (statement.period) {
       case "MONTHLY":
-        return `${startDate.toLocaleString('default', { month: 'long' })} ${startDate.getFullYear()}`;
-      case "QUARTERLY":
+        return `${startDate.toLocaleString('default', { month: 'long' })} ${startDate.getFullYear()}`;      case "QUARTERLY": {
         const quarter = Math.floor(startDate.getMonth() / 3) + 1;
         return `Q${quarter} ${startDate.getFullYear()}`;
+      }
       case "ANNUALLY":
         return `Annual ${startDate.getFullYear()}`;
       default:

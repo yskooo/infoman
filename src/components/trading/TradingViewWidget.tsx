@@ -1,11 +1,29 @@
+import { useEffect, useRef, useCallback } from 'react';
 
-import { useEffect, useRef } from 'react';
+interface TradingViewWidgetOptions {
+  autosize: boolean;
+  symbol: string;
+  interval: string;
+  timezone: string;
+  theme: string;
+  style: string;
+  locale: string;
+  toolbar_bg: string;
+  enable_publishing: boolean;
+  hide_top_toolbar: boolean;
+  hide_legend: boolean;
+  save_image: boolean;
+  container_id: string;
+  studies: string[];
+}
 
-// Define the TradingView widget props
-interface TradingViewWidgetProps {
-  symbol?: string;
-  theme?: string;
-  height?: number;
+// Extend Window interface to include TradingView
+declare global {
+  interface Window {
+    TradingView?: {
+      widget: new (config: TradingViewWidgetOptions) => void;
+    };
+  }
 }
 
 // TradingView Widget component
@@ -13,61 +31,19 @@ const TradingViewWidget = ({
   symbol = 'AAPL',
   theme = 'dark',
   height = 400
-}: TradingViewWidgetProps) => {
+}: {
+  symbol?: string;
+  theme?: string;
+  height?: number;
+}) => {
   const container = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    // Create the script element for TradingView widget
-    const script = document.createElement('script');
-    script.src = 'https://s3.tradingview.com/tv.js';
-    script.async = true;
-    script.onload = () => initWidget();
-
-    // Add the script to the document
-    document.head.appendChild(script);
-
-    // Initialize the TradingView widget
-    const initWidget = () => {
-      if (container.current && "TradingView" in window) {
-        const tradingView = (window as any).TradingView;
-        
-        container.current.innerHTML = '';
-        
-        new tradingView.widget({
-          autosize: true,
-          symbol: `NASDAQ:${symbol}`,
-          interval: "D",
-          timezone: "exchange",
-          theme: theme,
-          style: "1",
-          locale: "en",
-          toolbar_bg: "#f1f3f6",
-          enable_publishing: false,
-          hide_top_toolbar: false,
-          hide_legend: false,
-          save_image: false,
-          container_id: container.current.id,
-          studies: ["RSI@tv-basicstudies", "MACD@tv-basicstudies"],
-        });
-      }
-    };
-
-    // Cleanup function
-    return () => {
-      if (document.head.contains(script)) {
-        document.head.removeChild(script);
-      }
-    };
-  }, [symbol, theme]);
-
-  useEffect(() => {
-    // Reinitialize the widget when symbol changes
-    if ("TradingView" in window && container.current) {
-      const tradingView = (window as any).TradingView;
-      
+  // Initialize or update the TradingView widget
+  const initWidget = useCallback(() => {
+    if (container.current && window.TradingView) {
       container.current.innerHTML = '';
       
-      new tradingView.widget({
+      new window.TradingView.widget({
         autosize: true,
         symbol: `NASDAQ:${symbol}`,
         interval: "D",
@@ -84,7 +60,28 @@ const TradingViewWidget = ({
         studies: ["RSI@tv-basicstudies", "MACD@tv-basicstudies"],
       });
     }
-  }, [symbol]);
+  }, [symbol, theme]);
+
+  useEffect(() => {
+    // Create the script element for TradingView widget
+    const script = document.createElement('script');
+    script.src = 'https://s3.tradingview.com/tv.js';
+    script.async = true;
+    script.onload = initWidget;
+
+    // Add the script to the document
+    document.head.appendChild(script);
+
+    // Initial widget initialization
+    initWidget();
+
+    // Cleanup function
+    return () => {
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
+    };
+  }, [initWidget]); // Re-run when initWidget changes
 
   return (
     <div 

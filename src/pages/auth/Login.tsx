@@ -1,11 +1,13 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { authService } from "@/services/api/auth.service";
+import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import { Eye, EyeOff, LogIn, Loader2 } from "lucide-react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 
@@ -13,12 +15,45 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const { toast } = useToast();
   
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here we would connect to the backend
-    console.log("Login attempt with:", { email });
-    // For now we just log the attempt
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const response = await authService.login({ email, password });
+      
+      if (response) {
+        // Store user data
+        localStorage.setItem('user', JSON.stringify(response));
+        
+        toast({
+          description: "Logged in successfully",
+        });
+        
+        // Redirect to dashboard
+        navigate('/dashboard');
+      } else {
+        setError('Invalid email or password');
+        toast({
+          variant: "destructive",
+          description: "Invalid email or password",
+        });
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+      toast({
+        variant: "destructive",
+        description: err instanceof Error ? err.message : "Failed to log in",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -74,10 +109,13 @@ const Login = () => {
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
-              <Button type="submit" className="w-full">
-                <LogIn className="mr-2 h-4 w-4" />
-                Sign In
+            <CardFooter className="flex flex-col space-y-4">              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <LogIn className="mr-2 h-4 w-4" />
+                )}
+                {isLoading ? "Signing in..." : "Sign In"}
               </Button>
               <div className="text-center text-sm">
                 Don't have an account?{" "}

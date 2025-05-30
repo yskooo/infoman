@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import { type DialogProps } from "@radix-ui/react-dialog"
 import { Command as CommandPrimitive } from "cmdk"
@@ -22,9 +21,7 @@ const Command = React.forwardRef<
 ))
 Command.displayName = CommandPrimitive.displayName
 
-interface CommandDialogProps extends DialogProps {}
-
-const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
+const CommandDialog = ({ children, ...props }: DialogProps) => {
   return (
     <Dialog {...props}>
       <DialogContent className="overflow-hidden p-0 shadow-lg">
@@ -148,7 +145,7 @@ export {
   CommandList,
   CommandEmpty,
   CommandGroup,
+  CommandSeparator,
   CommandItem,
   CommandShortcut,
-  CommandSeparator,
 }
